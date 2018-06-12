@@ -88,9 +88,9 @@ for years,data_f,name in zip(years_group,data_folders,names):
             data_f[i]=data_f[i]+data_image[(data_f[i][0],data_f[i][1])]
             data_image[(data_f[i][0], data_f[i][1])]=[]
 
-    write_csv('data/'+name+'.csv', columns+columns_image, data_f)
-    print('writing data csv done.')
     if name in ['train','test']:
+        write_csv('data/' + name + '.csv', columns + columns_image, data_f)
+        print('writing data csv done.')
         data_f=[]
 
 
