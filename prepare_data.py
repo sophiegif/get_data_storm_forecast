@@ -69,6 +69,10 @@ data_folders=[data_test,data_train,data_public]
 years_group=[years_test,years_train,years_public]
 names=['test','train','public']
 
+data_folders=[data_public]
+years_group=[years_public]
+names=['public']
+
 # loading image data one fold at a time for memory issues
 for years,data_f,name in zip(years_group,data_folders,names):
     print(name)
@@ -89,7 +93,7 @@ for years,data_f,name in zip(years_group,data_folders,names):
             data_image[(data_f[i][0], data_f[i][1])]=[]
 
     if name in ['train','test']:
-        write_csv('data/' + name + '.csv', columns + columns_image, data_f)
+        write_csv('data/' + name + '.csv', columns + columns_image[2:], data_f)
         print('writing data csv done.')
         data_f=[]
 
@@ -106,17 +110,17 @@ for instant in data_public:
         data_public_test.append(instant)
     else:
         data_public_train.append(instant)
-
-write_csv('data/public_train.csv', columns,data_public_train)
-write_csv('data/public_test.csv', columns,data_public_test)
-
+    instant=[]
+write_csv('data/public_train.csv', columns+ columns_image[2:],data_public_train)
+write_csv('data/public_test.csv', columns+ columns_image[2:],data_public_test)
+print('writing public data csv done.')
 
 # copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
-copyfile(
-    os.path.join('data', 'public_train.csv'),
-    os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
-)
-copyfile(
-    os.path.join('data', 'public_test.csv'),
-    os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
-)
+#copyfile(
+#    os.path.join('data', 'public_train.csv'),
+#    os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
+#)
+#copyfile(
+#    os.path.join('data', 'public_test.csv'),
+#    os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
+#)
