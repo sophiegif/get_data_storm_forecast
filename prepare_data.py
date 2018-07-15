@@ -44,10 +44,6 @@ with open(file, 'r') as csvfile:
         data.append(row)
 storms=list(set(np.transpose(data)[0])) # names of storms present in ´data´
 
-# read image data - and stack it at the same time
-size_crop=25
-file_image=os.path.join('/home/sgiffard/Documents/Codes/get_data_storm_forecast/data', 'data_image_pressure_lev700.csv')
-
 test_split=0.25
 public_split=0.25
 randomseed=47
@@ -75,31 +71,44 @@ data_folders=[data_test,data_train,data_public]
 list_idsstorms=[list_idstorms_test,list_idstorms_train ,list_idstorms_public ]
 names=['test','train','public']
 
-# data_folders=[data_test]
-# list_idsstorms=[list_idstorms_test]
-# names=['test']
+#data_folders=[data_test]
+#list_idsstorms=[list_idstorms_test]
+#names=['test']
+
+
+# read images data - and stack it at the same time
+size_crop=11
+parameters=['z','u','v','sst','slp','hum','vo700']
+name_files=['z_crop25_subsampled','u_crop25_subsampled','v_crop25_subsampled',
+            'sst_crop11','slp_crop11','hum_crop11','vo700hPa_crop11']
+path='/home/sgiffard/Documents/StormProject/DataStorm/Xy/X_incsv/'
+
 
 # loading image data one fold at a time for memory issues
 for data_f,name,list_id in zip(data_folders,names, list_idsstorms):
     print(name)
-    data_image={}
-    with open(file_image, 'r') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        columns_image = spamreader.__next__()
-        for row in spamreader:
-            if row[0] in list_id:
-                data_image[(row[0],row[1])]=row[2:]
+    columns_image=[]
+    for param, name_file in zip(parameters, name_files):
+        file_image = os.path.join(path, 'data_image_'+ name_file+'.csv')
+        data_image={}
+        with open(file_image, 'r') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+            [columns_image.append(col) for col in spamreader.__next__()[2:]]
+            for row in spamreader:
+                if row[0] in list_id:
+                    data_image[(row[0],row[1])]=row[2:]
+
+        for i in range(len(data_f)):
+            if (data_f[i][0],data_f[i][1]) not in data_image.keys():
+                data_f[i] = data_f[i] + [0]*size_crop*size_crop
+            else:
+                data_f[i]=data_f[i]+data_image[(data_f[i][0],data_f[i][1])]
+                data_image[(data_f[i][0], data_f[i][1])]=[]
+
     print('loading images done.')
 
-    for i in range(len(data_f)):
-        if (data_f[i][0],data_f[i][1]) not in data_image.keys():
-            data_f[i] = data_f[i] + [0]*size_crop*size_crop
-        else:
-            data_f[i]=data_f[i]+data_image[(data_f[i][0],data_f[i][1])]
-            data_image[(data_f[i][0], data_f[i][1])]=[]
 
-
-    write_csv('data/' + name + '.csv', columns + columns_image[2:], data_f)
+    write_csv('data/' + name + '.csv', columns + columns_image, data_f)
     print('writing data csv done.')
     if name in ['train', 'test']:
         data_f=[]
@@ -109,6 +118,7 @@ data_train=[]
 
 #Data = pd.read_csv('/home/sgiffard/Documents/Codes/get_data_storm_forecast/data/public.csv')
 #data_public=np.array(Data)
+
 
 print('Separating public train and test...')
 # get some public data (to test locally) - independent from test and from train on the server.
@@ -123,19 +133,19 @@ for instant in data_public:
         data_public_test.append(instant)
     else:
         data_public_train.append(instant)
-    instant=[]
+    #instant=[]
 
 data_public=[]
-write_csv('data/public_train.csv', columns+ columns_image[2:],data_public_train)
-write_csv('data/public_test.csv', columns+ columns_image[2:],data_public_test)
+write_csv('data/public_train.csv', columns+ columns_image,data_public_train)
+write_csv('data/public_test.csv', columns+ columns_image,data_public_test)
 print('writing public data csv done.')
-
-#copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
-copyfile(
-   os.path.join('data', 'public_train.csv'),
-   os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
-)
-copyfile(
-   os.path.join('data', 'public_test.csv'),
-   os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
-)
+#
+# #copy starting kit files to <ramp_kits_dir>/<ramp_name>/data
+# copyfile(
+#    os.path.join('data', 'public_train.csv'),
+#    os.path.join(ramp_kits_dir, ramp_name, 'data', 'train.csv')
+# )
+# copyfile(
+#    os.path.join('data', 'public_test.csv'),
+#    os.path.join(ramp_kits_dir, ramp_name, 'data', 'test.csv')
+# )
